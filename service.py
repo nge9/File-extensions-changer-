@@ -28,7 +28,7 @@ class Session:
 
     def add(self, paths, recursive=False):
         existing = set(self.files)
-        added, skipped, warnings = 0, 0, []
+        added, skipped, protected, warnings = 0, 0, 0, []
         limit_reached = False
         for raw in paths:
             root = Path(raw).expanduser().absolute()
@@ -44,6 +44,9 @@ class Session:
                     if not candidate.is_file():
                         continue
                     path = candidate.resolve(strict=True)
+                    if path.is_relative_to(self.history.folder):
+                        protected += 1
+                        continue
                     if path in existing:
                         continue
                     if len(existing) >= self.max_files:
@@ -60,6 +63,8 @@ class Session:
         message = f'Added {added} files. Nothing has been renamed. Select the files you want to change.'
         if skipped:
             message += f' Skipped {skipped} symbolic links.'
+        if protected:
+            message += f' Skipped {protected} protected history files.'
         if limit_reached:
             message += f' The {self.max_files:,}-file selection limit was reached.'
         if warnings:
@@ -67,7 +72,7 @@ class Session:
         return {'message': message, 'state': self.snapshot()}
 
     def remove(self, paths):
-        selected = {Path(p) for p in paths}
+        selected = {Path(p).expanduser().resolve() for p in paths}
         self.files = [p for p in self.files if p not in selected]
         self.invalidate()
         return {'message': 'Removed items from the list. No files were deleted.', 'state': self.snapshot()}
@@ -80,9 +85,7 @@ class Session:
     def make_preview(self, paths, extension='', remove=False):
         if not isinstance(extension, str) or not isinstance(remove, bool):
             raise RenameError('Choose a valid extension or the remove-extension option.')
-        selected = list(dict.fromkeys(Path(p) for p in paths))
-        if any(p not in self.files for p in selected):
-            raise RenameError('Only files loaded into this window can be changed.')
+        selected = self.selected_paths(paths)
         rule = Rules(new_extension='' if remove else extension.strip() if extension.strip() else None)
         self.invalidate()
         self.plan = preview(selected, rule)
@@ -160,9 +163,25 @@ class Session:
     def all_records(self):
         return sorted(self.history.records() + self.archive_history.records(), key=lambda record: record['created_at'])
 
+    def selected_paths(self, paths):
+        selected = []
+        for raw in paths:
+            path = Path(raw).expanduser().absolute()
+            if path.is_symlink():
+                raise RenameError('Symbolic links cannot be selected.')
+            try:
+                path = path.resolve(strict=True)
+            except OSError as exc:
+                raise RenameError(f'The selected file is missing or unavailable: {path.name}') from exc
+            if path not in self.files:
+                raise RenameError('Only files loaded into this window can be changed.')
+            if path not in selected:
+                selected.append(path)
+        return selected
+
     def checked_files(self, paths):
-        selected = list(dict.fromkeys(Path(p) for p in paths))
-        if not selected or any(p not in self.files for p in selected):
+        selected = self.selected_paths(paths)
+        if not selected:
             raise RenameError('Check files that are loaded into this window first.')
         return selected
 

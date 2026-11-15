@@ -37,7 +37,7 @@ Keep the full repository together: the app needs the `ui` folder and its Python 
 
 **Only checked files currently shown by the filters are processed.** Checked files hidden by a filter are excluded. The count above the list shows exactly how many checked files are shown. Unchecked files remain untouched.
 
-**Remove checked from list**, **Uncheck all**, and **Clear list** only change the selection. They do not delete files or history. Up to 10,000 distinct files can be loaded per window. Symbolic links and special files are skipped or rejected.
+**Remove checked from list**, **Uncheck all**, and **Clear list** only change the selection. They do not delete files or history. Up to 10,000 distinct files can be loaded per window. Symbolic links and special files are skipped or rejected. The internal history files are protected from being loaded for renaming or archiving.
 
 ## Change extensions
 
@@ -103,7 +103,7 @@ Close files in other programs while changing extensions, undoing, or archiving t
 
 ## Tests
 
-The 50 engine, session, and archive tests use Python's standard library:
+The 52 engine, session, and archive tests use Python's standard library:
 
 ```bash
 python -m unittest discover -s tests -v

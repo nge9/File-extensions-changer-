@@ -23,7 +23,7 @@ class SessionTests(unittest.TestCase):
         path = self.folder / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
-        return path
+        return path.resolve()
 
     def test_folder_load_and_only_checked_file_changes(self):
         one = self.file('one.txt', b'one')
@@ -93,6 +93,26 @@ class SessionTests(unittest.TestCase):
         self.assertEqual(self.session.files, [nested])
         self.session.clear()
         self.assertTrue(nested.exists())
+
+    def test_alias_input_paths_match_the_resolved_selection(self):
+        raw = self.folder / 'raw-input.txt'
+        raw.write_bytes(b'file at the OS temporary path')
+        self.session.add([raw])
+        plan = self.session.make_preview([str(raw)], 'custom')
+        self.assertEqual(plan['entries'][0]['source'], str(raw.resolve()))
+        self.session.apply(plan['preview_id'])
+        self.assertTrue(raw.with_suffix('.custom').exists())
+
+    def test_internal_history_files_are_not_loaded(self):
+        path = self.file('a.txt')
+        self.session.add([path])
+        plan = self.session.make_preview([str(path)], 'custom')
+        self.session.apply(plan['preview_id'])
+        self.session.clear()
+        result = self.session.add([self.session.history.folder], recursive=True)
+        self.assertEqual(result['state']['files'], [])
+        self.assertEqual(result['state']['history_total'], 1)
+        self.assertIn('protected history', result['message'])
 
     def test_file_limit_does_not_modify_sources(self):
         paths = [self.file(f'{i}.txt') for i in range(5)]

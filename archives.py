@@ -45,7 +45,8 @@ def create_zip(paths, destination, history):
         if Path(raw).is_symlink():
             raise RenameError('ZIP creation does not follow symbolic links.')
     identities = {path: signature(path) for path in sources}
-    target = Path(destination).expanduser().absolute()
+    raw_target = Path(destination).expanduser().absolute()
+    target = raw_target.parent.resolve(strict=True) / raw_target.name
     if target.suffix.lower() != '.zip':
         target = target.with_name(target.name + '.zip')
     if os.path.lexists(target):
@@ -107,7 +108,9 @@ def validate_zip(archive):
         raise RenameError('This ZIP exceeds the 10 GiB extraction limit.')
     seen, prefixes, files = set(), {}, set()
     for info in entries:
-        parts = member_parts(info.filename)
+        parts = member_parts(info.orig_filename)
+        if info.orig_filename != info.filename:
+            raise RenameError('The ZIP contains a normalized or truncated unsafe path.')
         normalized = '/'.join(parts).casefold()
         if normalized in seen:
             raise RenameError('ZIP contains duplicate or case-conflicting paths.')

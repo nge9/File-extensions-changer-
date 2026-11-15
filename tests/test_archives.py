@@ -33,7 +33,13 @@ class ArchiveTests(unittest.TestCase):
         path = self.root / name
         with zipfile.ZipFile(path, 'w') as archive:
             for entry, content in members:
-                archive.writestr(entry, content)
+                if isinstance(entry, str):
+                    info = zipfile.ZipInfo()
+                    info.filename = entry
+                    info.orig_filename = entry
+                else:
+                    info = entry
+                archive.writestr(info, content)
         return path
 
     def test_compression_verification_and_relative_structure(self):
