@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' qrc:; script-src 'self' qrc:; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'">
+<title>File Extension Changer</title>
+<link rel="stylesheet" href="style.css">
+<script src="qrc:///qtwebchannel/qwebchannel.js" defer></script>
+<script src="app.js" defer></script>
+</head>
+<body>
+<aside>
+<div class="brand"><span class="brand-icon">.ext</span><div>Extension Studio<small>FILES, WITHOUT THE FRICTION</small></div></div>
+<div class="nav-label">YOUR WORKSPACE</div>
+<button class="nav active" id="files-tab"><span>▤</span> Files <b id="file-count">0</b></button>
+<button class="nav" id="history-tab"><span>◷</span> Change history <b id="history-count">0</b></button>
+<div class="side-card"><div class="nav-label">A RECORD FOR EVERY FILE</div><strong>Nothing gets lost<br>in the shuffle.</strong><p>Old names, new names, archive operations, and undo status stay in your local history.</p><button class="side-button" id="open-history">Open history folder ↗</button></div>
+<div class="offline"><span></span> Desktop app · works offline<p>No server. No cloud uploads.</p></div>
+</aside>
+<main>
+<header><span>MY COMPUTER <i>/</i> FILE EXTENSIONS & ARCHIVES</span><span class="local-pill"><b></b> LOCAL WORKSPACE</span></header>
+<section class="heading"><div><div class="eyebrow">SMALL CHANGES. FULL CONTROL.</div><h1 id="page-title">New extension. Same file.</h1><p id="page-subtitle">Choose your files, see what changes, and keep a record of every step.</p></div><div class="heading-actions" id="add-actions"><button class="button secondary" id="add-folder">Add folder</button><button class="button primary" id="add-files">＋ Add files</button></div></section>
+<div id="files-page">
+<div class="metrics"><div class="metric"><span>FILES LOADED</span><strong id="loaded-metric">0</strong><small>Files stay in their original folders</small></div><div class="metric"><span>CHECKED & SHOWN</span><strong id="checked-metric">0</strong><small>Only these files will be processed</small></div><div class="metric accent"><span>EXTENSION CHANGES</span><strong id="changes-metric">0</strong><small id="changes-description">Choose an extension to preview</small></div></div>
+<section class="target-card"><div class="target-label"><span class="eyebrow">CHOOSE A NEW ENDING</span><h2>Change extension</h2></div><div class="target-input"><label for="target-extension">New extension</label><div class="input-shell"><span>.</span><input id="target-extension" type="text" placeholder="pdf, txt, or anything valid" spellcheck="false" autocomplete="off"></div></div><div class="target-options"><label class="check"><input id="remove-extension" type="checkbox">Remove the last extension</label><select id="presets" aria-label="Common extension choices"><option value="">Common endings…</option value="txt">.txt</option><option value="pdf">.pdf</option><option value="jpg">.jpg</option><option value="png">.png</option><option value="py">.py</option><option value="json">.json</option><option value="csv">.csv</option><option value="md">.md</option><option value="zip">.zip</option></select></div><button class="button primary apply-button" id="apply" disabled>Apply preview <span>↗</span></button></section>
+<div class="format-note"><span>i</span><p><strong>A different name is not a different format.</strong> Changing .jpg to .pdf does not convert the contents. Create ZIP and Unzip perform real compression and extraction.</p></div>
+<section class="drop-zone" id="drop-zone"><span class="drop-icon">↓</span><div><strong>Drop a folder. Choose the files inside it.</strong><p>Adding files only lists them. Nothing changes until you apply an action.</p></div><label class="check"><input id="recursive" type="checkbox">Include subfolders</label></section>
+<section class="library"><div class="library-heading"><h2>Your files <span id="visible-count">0</span></h2><div class="library-actions"><button class="small-button" id="create-zip" disabled>Create ZIP</button><button class="small-button" id="unzip" disabled>Unzip ZIPs</button><button class="text-button" id="remove-checked" disabled>Remove checked from list</button><button class="text-button" id="clear-list">Clear list</button></div></div>
+<div class="filters"><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Search filenames or folders…" aria-label="Search files"></label><select id="extension-filter" aria-label="Original extension filter"><option value="">All extensions</option></select><select id="sort" aria-label="File sort order"><option value="name">Name A–Z</option><option value="newest">Modified: newest</option><option value="oldest">Modified: oldest</option><option value="size">Largest first</option></select><button class="small-button" id="select-shown">Check shown</button><button class="text-button" id="uncheck">Uncheck all</button><button class="small-button" id="refresh">↻</button></div>
+<div class="table-scroll"><table><thead><tr><th class="checkbox-column"><input type="checkbox" id="check-all" aria-label="Check all shown files"></th><th>FILE NAME</th><th>EXTENSION</th><th>PREVIEW NAME</th><th>FOLDER</th><th>STATUS</th></tr></thead><tbody id="file-list"></tbody></table></div>
+<div class="empty" id="empty"><div>▱</div><h3>A clean slate for your files.</h3><p>Add a folder or drop files here, then check the ones you want to change.</p><button class="button secondary" id="empty-add">Choose a folder</button></div>
+<div class="library-footer"><span id="selection-summary">No files loaded</span><span>Unchecked or hidden files are not processed.</span></div></section>
+</div>
+<div id="history-page" hidden><section class="history-intro"><div><h2>Every change has a trail.</h2><p>Each file gets its own record. Undo keeps the record and restores the original name.</p></div><button class="button primary" id="export-history">Export all history CSV</button></section><section class="library"><div class="filters history-filters"><label class="search"><span>⌕</span><input id="history-search" type="search" placeholder="Search old names, new names, folders, or operations…" aria-label="Search change history"></label><span id="history-summary"></span></div><div class="table-scroll"><table><thead><tr><th>TIME</th><th>OPERATION</th><th>BEFORE</th><th>AFTER / OUTPUT</th><th>FOLDER</th><th>STATUS</th></tr></thead><tbody id="history-list"></tbody></table></div><div id="history-empty" class="empty"><div>◷</div><h3>Your history starts with your first action.</h3><p>Extension changes, ZIP creation, and extraction will appear here.</p></div></section></div>
+<div id="recovery" class="recovery" hidden><p>An interrupted extension change needs recovery. Keep temporary files unchanged until recovery completes.</p><button class="button secondary" id="recover">Recover original names</button></div>
+<footer><p id="status" role="status" aria-live="polite">Ready. Start by adding files or a folder.</p><button class="button secondary" id="undo" disabled>↶ Undo extension change</button></footer>
+</main>
+<div id="drag-overlay" hidden><div><strong>↓</strong><h2>Drop to add files</h2><p>You choose what changes next.</p></div></div>
+<div id="busy-overlay" hidden><div class="busy-card"><div class="spinner"></div><h3 id="busy-title">Working locally…</h3><p>Keep this window open until the operation finishes.</p><div class="loading"><span></span></div></div></div>
+<div id="toast" hidden role="status"><span id="toast-text"></span><button id="toast-close" aria-label="Dismiss">×</button></div>
+<dialog id="report"><div class="dialog-heading"><h2 id="report-title">Operation report</h2><button id="report-close" aria-label="Close report">×</button></div><pre id="report-content"></pre><div class="dialog-bottom"><button class="button secondary" id="open-output" hidden>Open output folder</button><button class="button primary" id="report-ok">Got it</button></div></dialog>
+</body></html>
